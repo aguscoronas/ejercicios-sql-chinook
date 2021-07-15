@@ -194,5 +194,38 @@ JOIN playlist_track plt ON pl.playlist_id = plt.playlist_id
 JOIN track t ON plt.track_id = t.track_id 
 JOIN invoice_line il ON t.track_id = il.track_id
 JOIN invoice i ON i.invoice_id = il.invoice_id
-JOIN fact_de_menor_importe fdmi ON fdmi.invoice_id = i.invoice_id
+JOIN fact_de_menor_importe fdmi ON fdmi.invoice_id = i.invoice_id;
 
+--EJ 25 Listar los nombre completos de los empleados que dieron soporte a clientes que compraron tracks de audio
+SELECT DISTINCT e.first_name, e.last_name 
+FROM employee e 
+JOIN customer c ON e.employee_id = c.support_rep_id
+JOIN invoice i ON i.customer_id = c.customer_id
+JOIN invoice_line il ON i.invoice_id = il.invoice_id 
+JOIN track t ON il.track_id = t.track_id 
+JOIN media_type mt ON t.media_type_id = mt.media_type_id
+WHERE mt.name LIKE '%audio%';
+
+--EJ 26 Obtener la cantidad de ventas de tracks de género “Rock”.
+SELECT MIN(t.name) AS track_name, SUM(il.quantity) AS cantidad_de_vendidos
+FROM invoice_line il 
+JOIN track t ON t.track_id = il.track_id
+JOIN genre g ON t.genre_id = g.genre_id
+WHERE g.name = 'Rock'
+GROUP BY t.track_id;
+
+--EJ 27 Listar el id, título, y cantidad de minutos de todos los álbumes que duren más de 90 minutos
+SELECT al.album_id, al.title, SUM(t.milliseconds) / 60000 AS cantidad_de_minutos
+FROM album al 
+JOIN track t ON t.album_id = al.album_id
+GROUP BY al.album_id
+HAVING SUM(t.milliseconds) > 5400000;
+
+--EJ 28 Listar un ranking los artistas según la cantidad de playlists en las cuales aparecen. El artista que aparece en más playlists debe estar primero en el resultado.
+SELECT MIN(a.name) AS artist_name, COUNT(DISTINCT plt.playlist_id) AS cantidad_de_apariciones_en_playlist
+FROM artist a 
+JOIN album al ON al.artist_id = a.artist_id
+JOIN track t ON t.album_id = al.album_id 
+JOIN playlist_track plt ON plt.track_id = t.track_id
+GROUP BY a.artist_id 
+ORDER BY cantidad_de_apariciones_en_playlist DESC
